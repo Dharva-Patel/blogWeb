@@ -1,0 +1,17 @@
+# Access Token - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZjgwODE1ODA3NWMxZWY0NzgyMmM4NSIsImlhdCI6MTcxMDc1MzgxNH0.wZf-cLF0RsOHd_5tbh64PEcW4MGmyOphvo-oPmlfJZ8
+
+# POST http://localhost:3000/create-blog
+# Content-Type: application/json
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZjgwODE1ODA3NWMxZWY0NzgyMmM4NSIsImlhdCI6MTcxMDc1MzgxNH0.wZf-cLF0RsOHd_5tbh64PEcW4MGmyOphvo-oPmlfJZ8
+
+# {
+#     "title": "test title @ 123 $%-22@!",
+#     "banner": "https://example.com/image-url",
+#     "des": "Short and simple description",
+#     "content": {
+#         "blocks": [1, 2]
+#     },
+#     "tags": ["tag1", "tag2"]
+# }
+
+GET http://localhost:3000/trending-blogs
