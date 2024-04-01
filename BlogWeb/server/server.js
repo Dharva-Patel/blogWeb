@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import cors from "cors";
 import admin from "firebase-admin";
 import aws from "aws-sdk";
-import serviceAccountKey from "./blogging-website-aa9df-firebase-adminsdk-yjcyt-1ae266387b.json" assert {type: "json"}
+import serviceAccountKey from "./blog-website-76d0a-firebase-adminsdk-74if9-afd20fd430.json" assert {type: "json"}
 import Blog from "./Schema/Blog.js"
 import {getAuth} from "firebase-admin/auth";
 
@@ -44,7 +44,7 @@ const generateUploadURL = async () => {
     const imageName = `${nanoid()}-${date.getTime()}.jpeg`;
 
     return await s3.getSignedUrlPromise('putObject', {
-        Bucket: 'blogging-website-by-dharva',
+        Bucket: 'blog-website-by-dharva',
         Key: imageName,
         Expires: 1000,
         ContentType: "image/jpeg"
@@ -241,6 +241,23 @@ app.get("/trending-blogs", (req, res) => {
     })
     .catch(err => {
         return res.status(500).json({ error: err.message });
+    })
+})
+
+app.post("/search-blogs", (req, res) => {
+    let { tag } = req.body;
+    let findQuery = { tags: tag, draft: false };
+    let maxLimit = 5;
+    Blog.find(findQuery)
+    .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
+    .sort({ "publishedAt": -1 })
+    .select("blog_id title des banner activity tags publishedAt -_id")
+    .limit(maxLimit)
+    .then(blogs => {
+        return res.status(200).json({ blogs })
+    })
+    .catch(err => {
+        return res.status(500).json({ error: err.message })
     })
 })
 
