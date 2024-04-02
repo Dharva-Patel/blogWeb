@@ -213,20 +213,47 @@ app.post("/upload-image", async(req, res) => {
     }
 })
 
-app.get('/latest-blogs', (req, res) => {
+app.post('/latest-blogs', (req, res) => {
 
+    let { page } = req.body;
     let maxLimit = 5;
 
     Blog.find({ draft: false })
     .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
     .sort({ "publishedAt": -1 })
     .select("blog_id title des banner activity tags publishedAt -_id")
+    .skip((page - 1)*maxLimit)
     .limit(maxLimit)
     .then(blogs => {
         return res.status(200).json({ blogs })
     })
     .catch(err => {
         return res.status(500).json({ error: err.message })
+    })
+})
+
+app.post("/all-latest-blogs-count", (req, res) => {
+    Blog.countDocuments({ draft: false })
+    .then(count => {
+        return res.status(200).json({ totalDocs: count })
+    })
+    .catch(err => {
+        console.log(err.message);
+        return res.status(500).json({ error: err.message });
+    })
+})
+
+app.post("/search-blogs-count", (req, res) => {
+    let {tag} = req.body;
+    let findQuery = { tags: tag, draft: false };
+
+    Blog.countDocuments(findQuery)
+    .then(count => {
+        return res.status(200).json({ totalDocs: count });
+    })
+    .catch(err => {
+        console.log(err.message);
+        return res.status(500).json({ error: err.message });
     })
 })
 
@@ -245,13 +272,14 @@ app.get("/trending-blogs", (req, res) => {
 })
 
 app.post("/search-blogs", (req, res) => {
-    let { tag } = req.body;
+    let { tag, page } = req.body;
     let findQuery = { tags: tag, draft: false };
-    let maxLimit = 5;
+    let maxLimit = 2;
     Blog.find(findQuery)
     .populate("author", "personal_info.profile_img personal_info.username personal_info.fullname -_id")
     .sort({ "publishedAt": -1 })
     .select("blog_id title des banner activity tags publishedAt -_id")
+    .skip((page-1)*maxLimit)
     .limit(maxLimit)
     .then(blogs => {
         return res.status(200).json({ blogs })
