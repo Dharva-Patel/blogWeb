@@ -10,6 +10,7 @@ import admin from "firebase-admin";
 import aws from "aws-sdk";
 import serviceAccountKey from "./blog-website-76d0a-firebase-adminsdk-74if9-afd20fd430.json" assert {type: "json"}
 import Blog from "./Schema/Blog.js"
+import Notification from "./Schema/Notification.js"
 import {getAuth} from "firebase-admin/auth";
 
 dotenv.config();
@@ -412,6 +413,57 @@ app.post("/get-blog", (req, res) => {
     .catch(err => {
         return res.status(500).json({ error : err.message});
     })
+})
+
+app.post("/like-blog", verifyJWT, (req, res) => {
+    let user_id = req.user;
+
+    let { _id, isLikedByUser } = req.body;
+
+    let incrementVal = isLikedByUser ? -1 : 1;
+
+    Blog.findOneAndUpdate({ _id }, { $inc: { "activity.total_likes": incrementVal } })
+    .then(blog => {
+        
+        if(!isLikedByUser){
+            let like = new Notification({
+                type: "like",
+                blog: _id,
+                notification_for: blog.author,
+                user: user_id
+            })
+
+            like.save().then(notification => {
+                return res.status(200).json({ like_by_user: true });
+            })
+        }
+        else{
+
+            Notification.findOneAndDelete({user: user_id, blog: _id, type: "like"})
+            .then(data => {
+                return res.status(200).json({liked_by_user: false});
+            })
+
+        }
+
+    })
+})
+
+app.post("/isliked-by-user", verifyJWT, (req, res) => {
+    
+    let user_id = req.user;
+
+    let { _id } = req.body;
+
+    Notification.exists({ user: user_id, type: "like", blog: _id })
+    .then(result => {
+        return res.status(200).json({ result })
+    })
+    .catch(err => {
+        return res.status(500).json({error: err.message});
+    })
+
+
 })
 
 app.listen(port, () => {
