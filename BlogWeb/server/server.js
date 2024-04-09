@@ -11,6 +11,7 @@ import aws from "aws-sdk";
 import serviceAccountKey from "./blog-website-76d0a-firebase-adminsdk-74if9-afd20fd430.json" assert {type: "json"}
 import Blog from "./Schema/Blog.js"
 import Notification from "./Schema/Notification.js"
+import Comment from "./Schema/Comment.js";
 import {getAuth} from "firebase-admin/auth";
 
 dotenv.config();
@@ -464,6 +465,68 @@ app.post("/isliked-by-user", verifyJWT, (req, res) => {
     })
 
 
+})
+
+app.post("/add-comment", verifyJWT, (req, res) => {
+    
+    let user_id = req.user;
+    
+    let { _id, comment, blog_author } = req.body;
+    
+    if(!comment.length){
+        return res.status(403).json({ error: 'Cannot Submit an empty Comment' });
+    }
+
+    // comment Document
+    let commentObj = new Comment({
+        blog_id: _id, blog_author, comment, commented_by: user_id,
+    })
+
+    commentObj.save().then(commentFile => {
+        
+        let { comment, commentedAt, children } = commentFile;
+
+        Blog.findOneAndUpdate({ _id }, { $push: {"comments": commentFile._id}, $inc: {"activity.total_comments": 1}, "activity.total_parent_comments": 1 })
+        .then(blog => {console.log('New Comment Created')});
+
+        let notificationObj = {
+            type: "comment",
+            blog: _id,
+            notification_for: blog_author,
+            user: user_id,
+            comment: commentFile._id
+        }
+
+        new Notification(notificationObj).save().then(notification => console.log('New Notification created'));
+
+        return res.status(200).json({
+            comment, commentedAt, _id: commentFile._id, user_id, children
+        })
+
+    })
+
+})
+
+app.post("/get-blog-comments", (req, res) => {
+
+    let { blog_id, skip } = req.body;
+
+    let maxLimit = 5;
+
+    Comment.find({blog_id, isReply: false})
+    .populate("commented_by", "personal_info.username personal_info.fullname personal_info.profile_img")
+    .skip(skip)
+    .limit(maxLimit)
+    .sort({
+        'commentedAt': -1
+    })
+    .then(comment => {
+        return res.status(200).json(comment);
+    })
+    .catch(err => {
+        console.log(err.message);
+        return res.status(500).json({ error: err.message });
+    })
 })
 
 app.listen(port, () => {
