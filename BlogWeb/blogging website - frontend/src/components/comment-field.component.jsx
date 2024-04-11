@@ -36,13 +36,13 @@ const CommentField = ({ action, index = undefined, replyingTo = undefined, setRe
             let newCommentArr;
 
             if(replyingTo){
-                console.log("hi");
                 commentsArr[index].children.push(data._id);
                 data.childrenLevel = commentsArr[index].childrenLevel + 1;
                 data.parentIndex = index;
                 commentsArr[index].isReplyLoaded = true;
                 commentsArr.splice(index+1, 0, data);
                 newCommentArr = commentsArr;
+                setReplying(false);
             }
             else{
                 data.childrenLevel = 0;
@@ -50,9 +50,8 @@ const CommentField = ({ action, index = undefined, replyingTo = undefined, setRe
             }
 
             let parentCommentIncrementVal = replyingTo ? 0 : 1;
-            console.log(parentCommentIncrementVal);
 
-            setBlog({...blog, comments: {comments, results: newCommentArr}, activity: { ...activity, total_comments: total_comments + 1, total_parent_comments: total_parent_comments + parentCommentIncrementVal }})
+            setBlog({...blog, comments: {...comments, results: newCommentArr}, activity: { ...activity, total_comments: total_comments + 1, total_parent_comments: total_parent_comments + parentCommentIncrementVal }})
 
             setTotalParentCommentLoaded(prev => prev + parentCommentIncrementVal);
         })

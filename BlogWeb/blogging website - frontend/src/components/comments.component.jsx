@@ -33,10 +33,12 @@ export const fetchComments = async ({ skip = 0, blog_id, setParentCommentCountFu
 
 const CommentsContainer = () => {
 
-    let { blog, blog: {_id, title, comments: { results: commentsArr }, activity: { total_parent_comments }}, commentsWrapper, setCommentsWrapper, totalParentCommentsLoaded, setTotalParentCommentLoaded, setBlog } = useContext(BlogContext);
+    let { blog, blog: { _id, title, comments: { results: commentsArr }, activity: { total_parent_comments }}, commentsWrapper, setCommentsWrapper, totalParentCommentsLoaded, setTotalParentCommentLoaded, setBlog } = useContext(BlogContext);
 
-    const LoadMoreComments = async () => {
-        let newCommentsArr = await fetchComments({ skip:totalParentCommentsLoaded, blog_id: _id, setParentCommentCountFun: setTotalParentCommentLoaded, comment_array: commentsArr})
+    console.log(commentsArr);
+
+    const loadMoreComments = async () => {
+        let newCommentsArr = await fetchComments({ skip: totalParentCommentsLoaded, blog_id: _id, setParentCommentCountFun: setTotalParentCommentLoaded, comment_array: commentsArr})
 
         setBlog({ ...blog, comments: newCommentsArr });
     }
@@ -62,14 +64,14 @@ const CommentsContainer = () => {
                 commentsArr && commentsArr.length ?
                 commentsArr.map((comment, i) => {
                     return <AnimationWrapper key={i}>
-                        <CommentCard index={i} leftVal={comment.childrenLevel*4} commentData={comment}/>
+                        <CommentCard index={i} leftVal={comment.childrenLevel * 4} commentData={comment}/>
                     </AnimationWrapper>
                 }) : <NoDataMessage message="No comments" />
             }
 
             {
                 total_parent_comments > totalParentCommentsLoaded ? 
-                <button onClick={LoadMoreComments} className="text-dark-grey p-2 px-3 hover:bg-grey rounded-full flex items-center gap-2">
+                <button onClick={loadMoreComments} className="text-dark-grey p-2 px-3 hover:bg-grey rounded-full flex items-center gap-2">
                     Load More
                 </button>
                 : ""
