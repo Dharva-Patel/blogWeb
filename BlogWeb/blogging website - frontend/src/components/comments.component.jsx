@@ -35,8 +35,6 @@ const CommentsContainer = () => {
 
     let { blog, blog: { _id, title, comments: { results: commentsArr }, activity: { total_parent_comments }}, commentsWrapper, setCommentsWrapper, totalParentCommentsLoaded, setTotalParentCommentLoaded, setBlog } = useContext(BlogContext);
 
-    console.log(commentsArr);
-
     const loadMoreComments = async () => {
         let newCommentsArr = await fetchComments({ skip: totalParentCommentsLoaded, blog_id: _id, setParentCommentCountFun: setTotalParentCommentLoaded, comment_array: commentsArr})
 
