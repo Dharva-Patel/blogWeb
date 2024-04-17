@@ -1,8 +1,9 @@
-import {useContext, useState} from "react"; 
+import {useContext, useEffect, useState} from "react"; 
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import logo from "../imgs/original_logo.jpeg";
 import { UserContext } from "../App";
 import UserNavigationPanel from "./user-navigation.component";
+import axios from "axios";
 
 function Navbar() {
     const [ searchBoxClicked, setSearcBox ] = useState(false);
@@ -10,7 +11,25 @@ function Navbar() {
 
     let navigate = useNavigate();
 
-    const { userAuth, userAuth: {access_token, profile_img} } = useContext(UserContext);
+    const { userAuth, userAuth: {access_token, profile_img, new_notification_available}, setUserAuth } = useContext(UserContext);
+
+    useEffect(() => {
+        
+        if(access_token){
+            axios.get(import.meta.env.VITE_SERVER_DOMAIN + "/new-notification", {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            })
+            .then(({ data }) => {
+                setUserAuth({ ...userAuth, ...data });
+            })
+            .catch(err => {
+                console.log(err);
+            })
+        }
+
+    }, [access_token])
 
     function handleClick(){
         setUserNavPanel(prev => prev = !prev);
@@ -36,6 +55,7 @@ function Navbar() {
                 <Link to="/" className="flex-none w-12">
                     <img src={logo}></img>
                 </Link>
+
                 <div className={"absolute bg-white w-full left-0 top-full mt-0.5 border-b border-grey py-4 px-[5vw] md:border-0 md:block md:relative md:inset-0 md:p-0 md:w-auto md:show " + (searchBoxClicked ? "show" : "hide")}>
                     <input type="text" placeholder="Search" className="w-full md:w-auto bg-grey p-4 pl-6 pr-[12%] md:pr-6 rounded-full placeholder: text-dark-grey md:pl-12"
                     onKeyDown={handleSearch}></input>
@@ -56,6 +76,10 @@ function Navbar() {
                             <Link to="/dashboard/notification">
                                 <button className = "w-12 h-12 rounded-full bg-grey relative hover:bg-black/10">
                                     <i className="fi fi-rr-bell text-2xl block mt-1"></i>
+                                    {
+                                        new_notification_available ?
+                                        <span className="bg-red w-3 h-3 rounded-full absolute z-10 top-2 right-2"></span> : ""
+                                    }
                                 </button>
                             </Link> 
                             <div className="relative" onClick={handleClick} onBlur={handleBlur}>
