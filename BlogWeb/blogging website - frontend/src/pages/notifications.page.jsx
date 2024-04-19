@@ -2,10 +2,15 @@ import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { UserContext } from "../App";
 import filterPaginationData from "../common/filter-pagination-data";
+import Loader from "../components/loader.component";
+import AnimationWrapper from "../common/page-animation";
+import NoDataMessage from "../components/nodata.component";
+import NotificationCard from "../components/notification-card.component";
+import LoadMoreDataBtn from "../components/load-more.component";
 
 const Notifications = () => {
 
-    let { userAuth: { access_token } } = useContext(UserContext);
+    let { userAuth, userAuth: { access_token, new_notification_available}, setUserAuth } = useContext(UserContext);
 
     const [ filter, setFilter ] = useState('all');
     const [ notifications, setNotifications ] = useState(null);
@@ -28,6 +33,10 @@ const Notifications = () => {
             }
         })
         .then(async ({ data: { notifications: data } }) => {
+
+            if(new_notification_available){
+                setUserAuth({ ...userAuth, new_notification_available: false });
+            }
 
             let formatedData = await filterPaginationData({
                 state: notifications,
@@ -66,6 +75,26 @@ const Notifications = () => {
                     })
                 }
             </div>
+
+            {
+
+                notifications == null ? <Loader /> : 
+                <>
+                    {
+                        notifications.results.length ? 
+                        notifications.results.map((notification, i) => {
+                            return <AnimationWrapper key={i} transition={{ delay:i*0.08 }}>
+                                <NotificationCard data={notification} index={i} notificationState={{ notifications, setNotifications }}/>
+                            </AnimationWrapper>
+                        }) :
+                        <NoDataMessage message="No Notifications"/>
+                    }
+
+                    <LoadMoreDataBtn state={notifications} fetchDataFun={fetchNotifications} additionalParams={{ deletedDocCount: notifications.deletedDocCount }}/>
+
+                </>
+
+            }
 
         </div>
     );
