@@ -2,6 +2,12 @@ import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../App";
 import filterPaginationData from "../common/filter-pagination-data";
 import axios from "axios";
+import { Toaster, toast } from "react-hot-toast";
+import InPageNavigation from "../components/inpage-navigation.component";
+import Loader from "../components/loader.component";
+import NoDataMessage from "../components/nodata.component";
+import AnimationWrapper from "../common/page-animation";
+import ManagePublishedBlogCard from "../components/manage-blogcard.component";
 
 const ManageBlogs = () => {
 
@@ -47,6 +53,24 @@ const ManageBlogs = () => {
 
     }
 
+    const handleSearch = (e) => {
+        let searchQuery = e.target.value;
+        setQuery(searchQuery);
+        if(e.keyCode == 13 && searchQuery.length){
+            setBlogs(null);
+            setDrafts(null);
+        }
+        
+    }
+
+    const handleChange = (e) => {
+        if(!e.target.value.length){
+            setQuery("");
+            setBlogs(null);
+            setDrafts(null);
+        }
+    }
+
     useEffect(() => {   
 
         if(access_token){
@@ -61,7 +85,47 @@ const ManageBlogs = () => {
     }, [access_token, blogs, drafts, query])
 
     return (
-        <h1>temp</h1>
+        <>
+            <h1 className="max-md:hidden">Manage Blogs</h1>
+
+            <Toaster />
+
+            <div className="relative max-md:mt-5 md:mt-8 mb-10">
+                <input
+                type="search"
+                placeholder="Search Blogs"
+                className="w-full bg-grey p-4 pl-12 pr-6 rounded-full placehoder:text-dark-grey"
+                onChange={handleChange}
+                onKeyDown={handleSearch} />
+
+                <i className="fi fi-rr-search absolute right-[10%] md:pointer-events-none md:left-5 top-1/2 -translate-y-1/2 text-xl text-dark-grey"></i>
+
+            </div>
+            <InPageNavigation routes={["Published Blogs", "Drafts"]}>
+
+                {
+
+                    blogs == null ? <Loader /> :  
+                    blogs.results.length ? 
+                    <>
+                        {
+                            blogs.results.map((blog,i) => {
+                                return <AnimationWrapper key={i} transition={{ delay: i*0.04 }}>
+
+                                    <ManagePublishedBlogCard blog={blog}/>
+
+                                </AnimationWrapper>
+                            })
+                        }
+                    </>
+                    : 
+                    <NoDataMessage message="No Published Blogs"/>
+
+                }
+                <h1>This is Draft Blogs</h1>
+
+            </InPageNavigation>
+        </>
     )
 }
 
