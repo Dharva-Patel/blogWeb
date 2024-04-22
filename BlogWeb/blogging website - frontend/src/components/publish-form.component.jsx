@@ -89,7 +89,7 @@ function PublishForm(){
             toast.success("Blog Published 👍");
 
             setTimeout(() => {
-                navigate("/");
+                navigate("/dashborad/blogs");
             }, 500);
         })
         .catch(({ response }) => {

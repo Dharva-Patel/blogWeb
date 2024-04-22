@@ -7,7 +7,9 @@ import InPageNavigation from "../components/inpage-navigation.component";
 import Loader from "../components/loader.component";
 import NoDataMessage from "../components/nodata.component";
 import AnimationWrapper from "../common/page-animation";
-import ManagePublishedBlogCard from "../components/manage-blogcard.component";
+import { ManageDraftBlogPost, ManagePublishedBlogCard } from "../components/manage-blogcard.component";
+import LoadMoreDataBtn from "../components/load-more.component";
+import { useSearchParams } from "react-router-dom";
 
 const ManageBlogs = () => {
 
@@ -16,6 +18,8 @@ const ManageBlogs = () => {
     const [ blogs, setBlogs ] = useState(null);
     const [ drafts, setDrafts ] = useState(null);
     const [ query, setQuery ] = useState("");
+
+    let activeTab = useSearchParams()[0].get("tab");
 
     const getBlogs = ({ page, draft, deletedDocCount = 0 }) => {
 
@@ -36,8 +40,6 @@ const ManageBlogs = () => {
                 countRoute: "/user-written-blogs-count",
                 data_to_send: { draft, query }
             })
-
-            console.log("draft: " + draft, formatedData);
 
             if(draft){
                 setDrafts(formatedData);
@@ -101,7 +103,7 @@ const ManageBlogs = () => {
                 <i className="fi fi-rr-search absolute right-[10%] md:pointer-events-none md:left-5 top-1/2 -translate-y-1/2 text-xl text-dark-grey"></i>
 
             </div>
-            <InPageNavigation routes={["Published Blogs", "Drafts"]}>
+            <InPageNavigation routes={["Published Blogs", "Drafts"]} defaultActiveIndex={ activeTab != 'draft' ? 0 : 1 }>
 
                 {
 
@@ -112,17 +114,42 @@ const ManageBlogs = () => {
                             blogs.results.map((blog,i) => {
                                 return <AnimationWrapper key={i} transition={{ delay: i*0.04 }}>
 
-                                    <ManagePublishedBlogCard blog={blog}/>
+                                    <ManagePublishedBlogCard blog={{ ...blog, index:i, setStateFunc: setBlogs }}/>
 
                                 </AnimationWrapper>
                             })
                         }
+
+                        <LoadMoreDataBtn state={blogs} fetchDataFun={getBlogs} additionalParam={{draft: false, deletedDocCount: blogs.deletedDocCount }} />
+
                     </>
                     : 
                     <NoDataMessage message="No Published Blogs"/>
 
                 }
-                <h1>This is Draft Blogs</h1>
+
+                {
+
+                    drafts == null ? <Loader /> :  
+                    drafts.results.length ? 
+                    <>
+                        {
+                            drafts.results.map((blog,i) => {
+                                return <AnimationWrapper key={i} transition={{ delay: i*0.04 }}>
+
+                                    <ManageDraftBlogPost blog={{ ...blog, index:i, setStateFunc: setDrafts }}/>
+
+                                </AnimationWrapper>
+                            })
+                        }
+
+                        <LoadMoreDataBtn state={drafts} fetchDataFun={getBlogs} additionalParam={{draft: true, deletedDocCount: drafts.deletedDocCount }} />
+
+                    </>
+                    : 
+                    <NoDataMessage message="No Draft Blogs"/>
+
+                }
 
             </InPageNavigation>
         </>
