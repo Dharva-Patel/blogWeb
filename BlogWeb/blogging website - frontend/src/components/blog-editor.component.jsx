@@ -1,16 +1,18 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import React from "react";
 import { useContext, useEffect, useState } from "react";
-import logo from "../imgs/original_logo.jpeg"
+import lightLogo from "../imgs/logo-light.png";
+import darkLogo from "../imgs/logo-dark.png";
 import AnimationWrapper from "../common/page-animation";
-import defaultBanner from "../imgs/blog banner.png"
+import lightBanner from "../imgs/blog banner light.png"
+import darkBanner from "../imgs/blog banner dark.png"
 import { uploadImage } from "../common/aws";
 import toast, { Toaster } from 'react-hot-toast';
 import { EditorContext } from "../pages/editor.pages";
 import EditorJS from "@editorjs/editorjs"
 import { tools } from "./tools.component"
 import axios from "axios";
-import { UserContext } from "../App";
+import { ThemeContext, UserContext } from "../App";
 
 
 const BlogEditor = () => {
@@ -19,6 +21,8 @@ const BlogEditor = () => {
 
     let { userAuth: { access_token } } = useContext(UserContext);
     let { blog_id } = useParams;
+
+    let { theme } = useContext(ThemeContext);
 
     let navigate = useNavigate();
 
@@ -69,7 +73,7 @@ const BlogEditor = () => {
 
     const handleError = (e) => {
         let img = e.target;
-        img.src = defaultBanner;
+        img.src = theme=="light" ? lightBanner : darkBanner ;
     }
 
     const handlePublishEvent = () => {
@@ -137,7 +141,7 @@ const BlogEditor = () => {
         <>
             <nav className="navbar">
                 <Link to="/" className="flex-none w-12">
-                    <img src={logo}/>
+                    <img src={ theme=="light" ? darkLogo : lightLogo }/>
                 </Link>
                 <p className="max-md:hidden text-black line-clamp-1 w-full font-gelasio text-2xl">
                     {title.length ? title : "New Blog"}
@@ -171,7 +175,7 @@ const BlogEditor = () => {
                         <textarea
                             defaultValue={title}
                             placeholder="Blog Title"
-                            className="text-4xl color-black font-medium w-full h-20 outline-none resize-none mt-10 leading-tight" onKeyDown={handleTitleKeyDown} onChange={handleTitleChange}>
+                            className="text-4xl color-black font-medium w-full h-20 outline-none resize-none mt-10 leading-tight bg-white" onKeyDown={handleTitleKeyDown} onChange={handleTitleChange}>
 
                         </textarea>
                         <hr className="w-full opacity-10 m-5"/>
